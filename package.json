@@ -1,0 +1,39 @@
+{
+  "name": "nodebb-plugin-sso-firebase",
+  "version": "1.0.1-beta.2",
+  "description": "Firebase Single Sign-On plugin for NodeBB",
+  "main": "library.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bambusoideae/nodebb-plugin-sso-firebase.git"
+  },
+  "keywords": [
+    "nodebb",
+    "sso",
+    "firebase",
+    "authentication"
+  ],
+  "author": "bambusoideae",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bambusoideae/nodebb-plugin-sso-firebase/issues"
+  },
+  "homepage": "https://github.com/bambusoideae/nodebb-plugin-sso-firebase#README",
+  "nbbpm": {
+    "compatibility": "^1.1.x"
+  },
+  "devDependencies": {
+    "make-node": "0.3.x",
+    "mocha": "1.x.x",
+    "chai": "2.x.x",
+    "chai-passport-strategy": "1.x.x"
+  },
+  "dependencies": {
+    "firebase": "^3.4.0",
+    "passport-strategy": "1.x.x",
+    "uid2": "0.0.x"
+  }
+}
