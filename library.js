@@ -37,7 +37,9 @@
 
 	Firebase.getStrategy = function(strategies, callback) {
 		meta.settings.get('sso-firebase', function(err, settings) {
-			if (!err && settings['firebase-service-account'] && settings['firebase-database-url'] && settings['firebase-project-id'] && settings['authorizationurl']) {
+			if (!err && settings['firebase-service-account'] && settings['firebase-database-url'] && settings['firebase-project-id'] && settings['authorizationurl'] &&
+						settings['allowFirebaseLogin'] && settings['allowFirebaseLogin'] === "on") {
+
 				passport.use(new passportFirebase({
 					firebaseConfig: {
  	              		serviceAccount: settings['firebase-service-account'],
@@ -117,9 +119,19 @@
 					uid: uid
 				});
 			} else {
-				// New User
-				var success = function(uid) {
-					meta.settings.get('sso-firebase', function(err, settings) {
+				// Check settings
+				meta.settings.get('sso-firebase', function(err, settings) {
+					if (err) {
+						return callback(err);
+					}
+
+					if (!settings['allowFirebaseRegister'] || (settings['allowFirebaseRegister'] && settings['allowFirebaseRegister'] === "off")) {
+						return callback({ message: 'Register is disable.' });
+					}
+
+					// New User
+					var success = function(uid) {
+						// meta.settings.get('sso-firebase', function(err, settings) {
 						var autoConfirm = settings && settings['autoconfirm'] === "on" ? 1 : 0;
 						User.setUserField(uid, 'email:confirmed', autoConfirm);
 						// Save google firebase specific information to the user
@@ -136,39 +148,40 @@
 							uid: uid
 						});
 
-					});
-				};
+						// });
+					};
 
-				User.getUidByEmail(email, function(err, uid) {
-					if(err) {
-						return callback(err);
-					}
-
-					if (!uid) {
-						// Try to create user from email
-						var emailRegEx = /([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
-						var username = "";
-						var emailParse = emailRegEx.exec(email);
-
-						if (emailParse) {
-							username = emailParse[1];
+					User.getUidByEmail(email, function(err, uid) {
+						if(err) {
+							return callback(err);
 						}
 
-						if (!utils.isUserNameValid(username)) {
-							username = firebaseid;
-						}
+						if (!uid) {
+							// Try to create user from email
+							var emailRegEx = /([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+							var username = "";
+							var emailParse = emailRegEx.exec(email);
 
-						// Create new user
-						User.create({username: username, email: email, fullname: name}, function(err, uid) {
-							if(err) {
-								return callback(err);
+							if (emailParse) {
+								username = emailParse[1];
 							}
 
-							success(uid);
-						});
-					} else {
-						success(uid); // Existing account -- merge
-					}
+							if (!utils.isUserNameValid(username)) {
+								username = firebaseid;
+							}
+
+							// Create new user
+							User.create({username: username, email: email, fullname: name}, function(err, uid) {
+								if(err) {
+									return callback(err);
+								}
+
+								success(uid);
+							});
+						} else {
+							success(uid); // Existing account -- merge
+						}
+					});
 				});
 			}
 		});

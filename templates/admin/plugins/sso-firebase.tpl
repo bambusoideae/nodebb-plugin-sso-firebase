@@ -35,6 +35,18 @@
 					<span class="mdl-switch__label">Skip email verification for people who register using SSO?</span>
 				</label>
 			</div>
+			<div class="checkbox">
+				<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect">
+					<input type="checkbox" class="mdl-switch__input" name="allowFirebaseRegister">
+					<span class="mdl-switch__label">Allow new user who register using SSO?</span>
+				</label>
+			</div>
+			<div class="checkbox">
+				<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect">
+					<input type="checkbox" class="mdl-switch__input" name="allowFirebaseLogin">
+					<span class="mdl-switch__label">Allow Firebase SSO login</span>
+				</label>
+			</div>
 		</form>
 	</div>
 </div>
