@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-sso-firebase",
-  "version": "1.0.1-beta.2",
+  "version": "1.0.1-beta.3",
   "description": "Firebase Single Sign-On plugin for NodeBB",
   "main": "library.js",
   "scripts": {

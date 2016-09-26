@@ -14,7 +14,7 @@ NodeBB Hook
 How to use:
 ===========
   * Create a firebase project in the firebase console
-  * Write a sso-server: just pass firebase token into nodebb website
+  * Write a sso-server: just pass firebase token into nodebb website (ref: https://github.com/bambusoideae/firebase-sso-server-example)
   * Install this plugin in your forums
 
 SSO Server:
