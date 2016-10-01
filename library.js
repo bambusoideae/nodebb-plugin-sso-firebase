@@ -1,6 +1,11 @@
 (function(module) {
 	"use strict";
 
+	// Import global modules
+	var firebase = require("firebase");
+	var winston = require('winston');
+
+	// Import NodeBB modules
 	var User = module.parent.require('./user'),
 		meta = module.parent.require('./meta'),
 		db = module.parent.require('../src/database'),
@@ -22,9 +27,60 @@
 		}
 	});
 
-	var Firebase = {};
+	var FirebaseAuth = {};
 
-	Firebase.init = function(data, callback) {
+	// Hook: static:app.preload
+	FirebaseAuth.appPreload = function(app, callback) {
+		// console.log('Firebase SSO: static:app.preload!!!');
+		// This function call when app start or restart (not reload);
+		meta.settings.get('sso-firebase', function(err, settings) {
+			if (!err) {
+				var firebaseServiceAccountConfig = settings['firebase-service-account'];
+				var firebaseDatabaseUrl = settings['firebase-database-url'];
+				if (firebaseServiceAccountConfig && firebaseDatabaseUrl) {
+					fs.stat(firebaseServiceAccountConfig, (err, stats) => {
+						if (err) {
+							// File is not exist
+							// Warn: Please check firebase config
+							winston.warn('Cannot Initialize Firebase App. Please check firebase config!');
+						} else if (stats.isFile()) {
+							// Initialize firebase app
+							winston.info('Initializing Firebase App...');
+							firebase.initializeApp({
+  								serviceAccount: firebaseServiceAccountConfig,
+  								databaseURL: firebaseDatabaseUrl
+							});
+							winston.info('Firebase Ready');
+						} else {
+							// Warn: Please check firebase config
+							winston.warn('Cannot Initialize Firebase App. Please check firebase config!');
+						}
+
+						// next();
+						return callback();
+					});
+				} else {
+					// Warn: Please config firebase
+					winston.warn('sso-firebase settings is undefined');
+					winston.warn('Please config firebase!');
+
+					// next();
+					return callback();
+				}
+			} else {
+				winston.warn('Cannot read sso-firebase settings!');
+
+				// next();
+				return callback();
+			}
+		});
+		// Do not write any code after this line
+		// next middleware
+		// callback();
+	}
+
+	// Hook: static:app.load
+	FirebaseAuth.init = function(data, callback) {
 		function render(req, res, next) {
 			res.render('admin/plugins/sso-firebase', {});
 		}
@@ -35,16 +91,13 @@
 		callback();
 	}
 
-	Firebase.getStrategy = function(strategies, callback) {
+	// Hook: filter:auth.init
+	FirebaseAuth.getStrategy = function(strategies, callback) {
 		meta.settings.get('sso-firebase', function(err, settings) {
 			if (!err && settings['firebase-service-account'] && settings['firebase-database-url'] && settings['firebase-project-id'] && settings['authorizationurl'] &&
 						settings['allowFirebaseLogin'] && settings['allowFirebaseLogin'] === "on") {
 
 				passport.use(new passportFirebase({
-					firebaseConfig: {
- 	              		serviceAccount: settings['firebase-service-account'],
-               			databaseURL: settings['firebase-database-url']
-          			},
 					firebaseProjectId: settings['firebase-project-id'],
 					authorizationURL: settings['authorizationurl'],
 					callbackURL: nconf.get('url') + '/auth/firebase/callback',
@@ -57,7 +110,7 @@
 						return done(null, req.user);
 					}
 
-					Firebase.login(decodedToken.uid, decodedToken.name, decodedToken.email, decodedToken.picture, function(err, user) {
+					FirebaseAuth.login(decodedToken.uid, decodedToken.name, decodedToken.email, decodedToken.picture, function(err, user) {
 						if (err) {
 							return done(err);
 						}
@@ -81,7 +134,8 @@
 		});
 	};
 
-	Firebase.getAssociation = function(data, callback) {
+	// Hook: filter:auth.list
+	FirebaseAuth.getAssociation = function(data, callback) {
 		User.getUserField(data.uid, 'firebaseid', function(err, firebaseid) {
 			if (err) {
 				return callback(err, data);
@@ -107,8 +161,8 @@
 		})
 	};
 
-	Firebase.login = function(firebaseid, name, email, picture, callback) {
-		Firebase.getUidByFirebaseId(firebaseid, function(err, uid) {
+	FirebaseAuth.login = function(firebaseid, name, email, picture, callback) {
+		FirebaseAuth.getUidByFirebaseId(firebaseid, function(err, uid) {
 			if(err) {
 				return callback(err);
 			}
@@ -187,7 +241,7 @@
 		});
 	};
 
-	Firebase.getUidByFirebaseId = function(firebaseid, callback) {
+	FirebaseAuth.getUidByFirebaseId = function(firebaseid, callback) {
 		db.getObjectField('firebaseid:uid', firebaseid, function(err, uid) {
 			if (err) {
 				return callback(err);
@@ -196,7 +250,8 @@
 		});
 	};
 
-	Firebase.addMenuItem = function(custom_header, callback) {
+	// Hook: filter:admin.header.build
+	FirebaseAuth.addMenuItem = function(custom_header, callback) {
 		custom_header.authentication.push({
 			"route": constants.admin.route,
 			"icon": constants.admin.icon,
@@ -206,7 +261,8 @@
 		callback(null, custom_header);
 	}
 
-	Firebase.deleteUserData = function(data, callback) {
+	// Hook: static:user.delete
+	FirebaseAuth.deleteUserData = function(data, callback) {
 		var uid = data.uid;
 
 		async.waterfall([
@@ -223,5 +279,5 @@
 		});
 	};
 
-	module.exports = Firebase;
+	module.exports = FirebaseAuth;
 }(module));

@@ -6,6 +6,7 @@
 	"library": "./library.js",
 	"templates": "templates",
 	"hooks": [
+		{ "hook": "static:app.preload", "method": "appPreload" },
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "filter:auth.list", "method": "getAssociation" },
 		{ "hook": "filter:auth.init", "method": "getStrategy" },
