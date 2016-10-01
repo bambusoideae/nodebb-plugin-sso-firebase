@@ -101,6 +101,7 @@
 					firebaseProjectId: settings['firebase-project-id'],
 					authorizationURL: settings['authorizationurl'],
 					callbackURL: nconf.get('url') + '/auth/firebase/callback',
+					state: settings['usingState'] === 'on' ? true : false,
 					passReqToCallback: true
 				}, function(req, accessToken, refreshToken, decodedToken, done) {
 					if (req.hasOwnProperty('user') && req.user.hasOwnProperty('uid') && req.user.uid > 0) {

@@ -31,6 +31,12 @@
 			</div>
 			<div class="checkbox">
 				<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect">
+					<input type="checkbox" class="mdl-switch__input" name="usingState">
+					<span class="mdl-switch__label">Using State parameter (Prevent CSRF attack)</span>
+				</label>
+			</div>
+			<div class="checkbox">
+				<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect">
 					<input type="checkbox" class="mdl-switch__input" name="autoconfirm">
 					<span class="mdl-switch__label">Skip email verification for people who register using SSO?</span>
 				</label>

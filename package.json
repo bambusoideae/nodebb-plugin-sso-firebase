@@ -32,7 +32,7 @@
     "chai-passport-strategy": "1.x.x"
   },
   "dependencies": {
-    "firebase": "^3.4.0",
+    "firebase": "^3.4.1",
     "passport-strategy": "1.x.x",
     "uid2": "0.0.x",
     "winston": "^2.1.0"
