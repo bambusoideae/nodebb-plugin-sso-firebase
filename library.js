@@ -2,24 +2,24 @@
 	"use strict";
 
 	// Import global modules
-	var firebase = require("firebase");
-	var winston = require('winston');
+	let firebaseAdmin = require('firebase-admin');
+	let winston = require('winston');
 
 	// Import NodeBB modules
-	var User = module.parent.require('./user'),
+	let User = module.parent.require('./user'),
 		meta = module.parent.require('./meta'),
 		db = module.parent.require('../src/database'),
 		passport = module.parent.require('passport');
-	var utils = module.parent.require('../public/src/utils');
-	var	passportFirebase = require('./lib/passport-firebase-auth').Strategy;
-	var	fs = module.parent.require('fs'),
+	let utils = module.parent.require('../public/src/utils');
+	let	passportFirebase = require('./lib/passport-firebase-auth').Strategy;
+	let	fs = module.parent.require('fs'),
 		path = module.parent.require('path'),
 		nconf = module.parent.require('nconf'),
 		async = module.parent.require('async');
 
-	var authenticationController = module.parent.require('./controllers/authentication');
+	let authenticationController = module.parent.require('./controllers/authentication');
 
-	var constants = Object.freeze({
+	let constants = Object.freeze({
 		'name': "Firebase",
 		'admin': {
 			'route': '/plugins/sso-firebase',
@@ -27,7 +27,7 @@
 		}
 	});
 
-	var FirebaseAuth = {};
+	let FirebaseAuth = {};
 
 	// Hook: static:app.preload
 	FirebaseAuth.appPreload = function(app, callback) {
@@ -35,8 +35,8 @@
 		// This function call when app start or restart (not reload);
 		meta.settings.get('sso-firebase', function(err, settings) {
 			if (!err) {
-				var firebaseServiceAccountConfig = settings['firebase-service-account'];
-				var firebaseDatabaseUrl = settings['firebase-database-url'];
+				let firebaseServiceAccountConfig = settings['firebase-service-account'];
+				let firebaseDatabaseUrl = settings['firebase-database-url'];
 				if (firebaseServiceAccountConfig && firebaseDatabaseUrl) {
 					fs.stat(firebaseServiceAccountConfig, (err, stats) => {
 						if (err) {
@@ -46,11 +46,11 @@
 						} else if (stats.isFile()) {
 							// Initialize firebase app
 							winston.info('Initializing Firebase App...');
-							firebase.initializeApp({
-  								serviceAccount: firebaseServiceAccountConfig,
+							firebaseAdmin.initializeApp({
+  								credential: firebaseAdmin.credential.cert(firebaseServiceAccountConfig),
   								databaseURL: firebaseDatabaseUrl
 							});
-							winston.info('Firebase Ready');
+							winston.info('Firebase Admin Ready');
 						} else {
 							// Warn: Please check firebase config
 							winston.warn('Cannot Initialize Firebase App. Please check firebase config!');
@@ -185,9 +185,9 @@
 					}
 
 					// New User
-					var success = function(uid) {
+					let success = function(uid) {
 						// meta.settings.get('sso-firebase', function(err, settings) {
-						var autoConfirm = settings && settings['autoconfirm'] === "on" ? 1 : 0;
+						let autoConfirm = settings && settings['autoconfirm'] === "on" ? 1 : 0;
 						User.setUserField(uid, 'email:confirmed', autoConfirm);
 						// Save google firebase specific information to the user
 						User.setUserField(uid, 'firebaseid', firebaseid);
@@ -213,9 +213,9 @@
 
 						if (!uid) {
 							// Try to create user from email
-							var emailRegEx = /([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
-							var username = "";
-							var emailParse = emailRegEx.exec(email);
+							let emailRegEx = /([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+							let username = "";
+							let emailParse = emailRegEx.exec(email);
 
 							if (emailParse) {
 								username = emailParse[1];
@@ -264,7 +264,7 @@
 
 	// Hook: static:user.delete
 	FirebaseAuth.deleteUserData = function(data, callback) {
-		var uid = data.uid;
+		let uid = data.uid;
 
 		async.waterfall([
 			async.apply(User.getUserField, uid, 'firebaseid'),

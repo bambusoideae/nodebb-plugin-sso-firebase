@@ -1,3 +1,6 @@
+1.0.1
+  * Using firebase-admin package instead of firebase
 
+1.0.1-beta.4
   * Add Using State Mode
   * Fix Error when reload forums
